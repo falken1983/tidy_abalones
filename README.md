@@ -1,2 +1,6 @@
 # tidy_abalones
-Abalons Age predicting with linear models focusing by using R-Modern tools  from tidyverse: readr, tidyr, dplyr and ggplot
+Abalons age prediction by means of ML linear models focusing on the use of Modern `R` tools and syntax from `tidyverse`: 
++ `readr`, 
++ `tidyr`, 
++ `dplyr`, and;
++ `ggplot`
