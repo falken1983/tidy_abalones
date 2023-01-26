@@ -1,5 +1,5 @@
 ---
-title: "Prediciendo la Edad de los Abalones mediante Modelos Lineales"
+title: "Linearly Predicting the Abalones Age"
 output: pdf_document
 ---
 
