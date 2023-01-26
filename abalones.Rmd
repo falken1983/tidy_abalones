@@ -1,0 +1,110 @@
+---
+title: "Prediciendo la Edad de los Abalones mediante Modelos Lineales"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+# 1 Scope
+The scope of this `R`-markdown notebook consists on predicting the age of abalones by means
+of machine learning linear regression models.
+In doing this, we use modern `R` syntax and libraries from `tidyverse` ecosystem such as `dplyR`, `ggplot` and `readr`
+
+```{r, message=FALSE}
+require(readr)
+abalone <- readr::read_csv("datos/abalone.txt", col_names=F)
+# Angel Muelas et al 
+# Data file does not contain descriptor names
+nombres_col <- c(
+  "Sex",
+  "Length",
+  "Diameter",
+  "Height",
+  "Who_weight",
+  "Shu_weight",
+  "Viscera",
+  "Shell",
+  "Rings"
+)
+# Redefining tibble_df object
+colnames(abalone) <- nombres_col
+abalone$Sex <- as.factor(abalone$Sex)
+```
+# 2 EDA
+Looking for null-values
+```{r echo=TRUE, message=FALSE}
+summary(abalone)
+```
+There are not null-values, however some nonsensical zero-values are present for 
+the feature `Height`. Let us localize them
+
+1. Classic syntax
+```{r} 
+# more familiar for pandas python users
+abalone[abalone$Height==0,]
+```
+2. Modern syntax (`dplyr`)
+```{r, message=FALSE}
+require(dplyr)
+dplyr::filter(abalone, Height==0)
+```
+Therefore, in order to filter null `Height` values we can proceed as follows
+```{r}
+abalone <- dplyr::filter(abalone, Height!=0)
+```
+
+## 2.1 Descriptive Analysis 
+```{r}
+# Equivalent to .describe()
+summary(abalone)
+```
+
+```{r, message=FALSE}
+# Qualitative cross-relations within ggpairs()
+# including categorical variable: Sex
+require(GGally)
+ggpairs(
+  data = abalone,
+  mapping = ggplot2::aes(colour=Sex),
+  diag = list(
+    discrete="barDiag",                         # Facet BoxPlot
+    continuous=wrap("densityDiag", alpha=0.5)   # density for numerical
+  ),
+  upper = list(continuous=wrap("cor", size=2)), # correlations on upper-diagonal
+  lower = list(
+    continuous=wrap("smooth", alpha=0.5)#,
+  ),
+progress = F # suppress verbosity
+)
+```
+
+Excluding `Sex` feature (facet) in the discussion we have
+```{r, message=FALSE}
+ggpairs(
+  data = abalone %>% select(-Sex),
+  upper = list(continuous=wrap("cor", size=4)),
+  lower = list(continuous=wrap("smooth", colour="blue")),
+  progress = F
+)
+```
+# 2.2 Outliers Detection
+
+From visual inspection, clearly `Height` feature exhibits two outliers.
+We can see it more precisely by using boxplot diagram restricted to this feature:
+```{r, message=FALSE}
+abalone %>% dplyr::select(Height) %>% boxplot()
+```
+In order to drop them, we can use filter
+```{r, message=FALSE}
+abalone <- 
+  abalone %>% dplyr::filter(Height<0.5)
+```
+and test
+```{r, message=FALSE}
+abalone %>% select(Height) %>% boxplot()
+```
+
+Strong cross-correlations between features (all variables except \# Rings)
+could be a sign of co linearity or multicolinearity (redundancy).
+
